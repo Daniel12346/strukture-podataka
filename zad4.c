@@ -9,7 +9,11 @@ typedef Clan* Pozicija;
 Pozicija StvoriPoziciju();
 int DodajClanNaKraj(int, int, Pozicija);
 int SortDodajClan(int, int, Pozicija);
+
 Pozicija ZbrojiPolinome(Pozicija, Pozicija);
+Pozicija MnoziPolinome(Pozicija, Pozicija);
+//TODO: citanje iz datoteke
+
 int Ispisi(Pozicija p);
 
 struct _clan {
@@ -19,7 +23,7 @@ struct _clan {
 };
 
 int main(){
-	Pozicija p1 = NULL, p2 = NULL, zbr = NULL;
+	Pozicija p1 = NULL, p2 = NULL, umnozak = NULL;
 	//npr. 4x^0 + 2x^1 + 2x^4 + 5x^5 + 6x^6 +7x^7 
 	p1 = StvoriPoziciju();
 	p1->next = NULL;
@@ -30,7 +34,7 @@ int main(){
 
 	SortDodajClan(2, 1, p1);
 	SortDodajClan(4, 0, p1);
-	SortDodajClan(2, 4, p1);
+	SortDodajClan(2, 4, p1);/*
 	SortDodajClan(12, 2, p1);
 	SortDodajClan(7, 7 ,p1);
 	SortDodajClan(6,  6,p1);
@@ -38,7 +42,7 @@ int main(){
 
 	SortDodajClan(5, 5 ,p2);
 	SortDodajClan(6,  6,p2);
-	SortDodajClan(7, 7 ,p2);
+	SortDodajClan(7, 7 ,p2);*/
 	SortDodajClan(7, 3, p2);
 	SortDodajClan(8, 2, p2);
 	SortDodajClan(2, 0, p2);
@@ -47,9 +51,10 @@ int main(){
 	printf("\n");
 	Ispisi(p2);
 
-	zbr = ZbrojiPolinome(p1, p2);
+	umnozak = MnoziPolinome(p1, p2);
 	printf("\n");
-	Ispisi(zbr);
+
+	Ispisi(umnozak);
 	
 }
 
@@ -88,7 +93,7 @@ Pozicija StvoriPoziciju(){
 
 int Ispisi(Pozicija p){
 	while(p != NULL){
-		printf("%dx^%d +", p->koef, p->pot);
+		printf("+ %dx^%d", p->koef, p->pot);
 		p = p->next;
 	}
 }
@@ -135,4 +140,34 @@ Pozicija ZbrojiPolinome(Pozicija pol1, Pozicija pol2){
 		}
 	}
 	return pol_zbr;
+}
+
+
+Pozicija MnoziPolinome(Pozicija pol1, Pozicija pol2){
+	//pol_umnoz je konacni rezultat mnozenja, pol2_poc je pocetak drugog polinoma, tmp kasnije poprima vrijednost jednoclanog polinoma  
+	Pozicija pol_umnoz = NULL, pol2_poc = pol2, tmp = NULL;
+	pol_umnoz = StvoriPoziciju();
+	if (pol_umnoz == NULL){
+		return NULL;
+	}
+	pol_umnoz->next = NULL;
+	//prolazi kroz sve clanove prvog polinoma
+	while (pol1 != NULL){	
+	//za svaki clan prvog polinoma prolazi kroz sve clanove drugog polinoma, na kraju petlje vraća drugi polinom na pocetak
+		while(pol2 != NULL){
+			//zbrajamo tako da ukupnom rezultatu zasebno pribrajamo clanove koji nastaje pri mnozenju svakog clana prvog polinoma sa svakim clanom drugog polinoma
+			tmp = StvoriPoziciju();
+			if (tmp == NULL){
+				return NULL;
+			};
+			tmp->next = NULL;
+			tmp->koef = pol1->koef * pol2->koef;
+			tmp->pot = pol1->pot + pol2->pot;
+			pol_umnoz = ZbrojiPolinome(pol_umnoz, tmp);
+			pol2 = pol2->next;
+		}	
+		pol1 = pol1->next;
+		pol2 = pol2_poc;
+	}
+	return pol_umnoz;
 }
