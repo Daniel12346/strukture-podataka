@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MAX 100
 #define ERR -1
 
 typedef struct _clan Clan;
@@ -12,7 +13,12 @@ int SortDodajClan(int, int, Pozicija);
 
 Pozicija ZbrojiPolinome(Pozicija, Pozicija);
 Pozicija MnoziPolinome(Pozicija, Pozicija);
-//TODO: citanje iz datoteke
+
+//cita brojeve iz jedne linije iz datoteke i vraca broj ucitanih brojeva
+int UcitajBrojeveIzLinijeUNiz(FILE *,int*, char*);
+
+//pretpostavlja da se u datoteci nalazi samo jedan red koeficijenata i jedan red eksponenata (potencija)
+Pozicija UcitajPolinomIzDat(FILE *fp, char*);	
 
 int Ispisi(Pozicija p);
 
@@ -23,40 +29,37 @@ struct _clan {
 };
 
 int main(){
-	Pozicija p1 = NULL, p2 = NULL, umnozak = NULL;
-	//npr. 4x^0 + 2x^1 + 2x^4 + 5x^5 + 6x^6 +7x^7 
-	p1 = StvoriPoziciju();
-	p1->next = NULL;
-
-	//npr. 2x^0 + 8x^2 + 7x^3  + 5x^5 + 6x^6 +7x^7 
-	p2 = StvoriPoziciju();
-	p2->next = NULL;
-
-	SortDodajClan(2, 1, p1);
-	SortDodajClan(4, 0, p1);
-	SortDodajClan(2, 4, p1);/*
-	SortDodajClan(12, 2, p1);
-	SortDodajClan(7, 7 ,p1);
-	SortDodajClan(6,  6,p1);
-	SortDodajClan(5, 5 ,p1);
-
-	SortDodajClan(5, 5 ,p2);
-	SortDodajClan(6,  6,p2);
-	SortDodajClan(7, 7 ,p2);*/
-	SortDodajClan(7, 3, p2);
-	SortDodajClan(8, 2, p2);
-	SortDodajClan(2, 0, p2);
-
-	Ispisi(p1);
-	printf("\n");
-	Ispisi(p2);
-
-	umnozak = MnoziPolinome(p1, p2);
-	printf("\n");
-
-	Ispisi(umnozak);
+	Pozicija pol1 = NULL, pol2 = NULL, zbroj = NULL, umnozak = NULL; 
+	FILE *fp1, *fp2 = NULL;	
+	char buff1[MAX], buff2[MAX];	
+	fp1 = fopen("polinom1.txt", "r");
+	fp2 = fopen("polinom2.txt", "r");
+	if (fp1 == NULL || fp2 == NULL){
+		printf("Greska - otvaranje datoteke nije uspjelo\n");
+		return -1;
+	};
 	
-}
+	pol1 = UcitajPolinomIzDat(fp1, buff1);	
+	pol2 = UcitajPolinomIzDat(fp2, buff2);
+
+	if (pol1 == NULL || pol2 == NULL) return ERR;
+
+	printf("1. polinom: ");
+	Ispisi(pol1);
+
+	printf("2. polinom: ");
+	Ispisi(pol2);
+	
+	zbroj = ZbrojiPolinome(pol1, pol2);
+
+	printf("Zbroj polinoma: ");
+	Ispisi(zbroj);
+
+	umnozak = MnoziPolinome(pol1, pol2);
+	
+	printf("Umnozak polinoma: ");
+	Ispisi(umnozak);
+}	
 
 int DodajClanNaKraj(int koef, int pot, Pozicija p){
 	Pozicija q = StvoriPoziciju();
@@ -96,6 +99,7 @@ int Ispisi(Pozicija p){
 		printf("+ %dx^%d", p->koef, p->pot);
 		p = p->next;
 	}
+	printf("\n");
 }
 
 
@@ -170,4 +174,38 @@ Pozicija MnoziPolinome(Pozicija pol1, Pozicija pol2){
 		pol2 = pol2_poc;
 	}
 	return pol_umnoz;
+}
+
+
+int UcitajBrojeveIzLinijeUNiz(FILE *fp, int *p_niz, char *buff){	
+	int offset = 0, tmp = 0, i = 0;
+	fgets(buff, MAX, fp);
+	while(sscanf(buff, "%d%n", &tmp, &offset)==1){
+		//pomiče pointer za broj procitanih znakova
+		buff += offset;
+		p_niz[i] = tmp;
+		i++;
+	}	
+	return i;
+}
+
+Pozicija UcitajPolinomIzDat(FILE *fp, char *buff){	
+	Pozicija head = StvoriPoziciju();
+	head->next = NULL;
+	int len, koeficijenti[MAX], potencije[MAX];
+	
+	if(head == NULL){
+		printf("Nedovoljno prostora");
+		return NULL;
+	}
+	//len je duljina niza koeficijenata (i niza potencija) tj. broj članova polinoma
+	if( (len = UcitajBrojeveIzLinijeUNiz(fp, koeficijenti, buff)) != UcitajBrojeveIzLinijeUNiz(fp, potencije, buff) ){
+		printf("Greska - nije jednak broj eksponenata i potencija zadan u datoteci, polinom nije valjan");
+		return NULL;
+	}
+	
+	for (int i = 0; i < len; i++){	
+		SortDodajClan(koeficijenti[i], potencije[i], head);
+	}
+	return head;
 }
