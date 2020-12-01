@@ -12,25 +12,54 @@ struct _clan
     int el;
     Pozicija next;
 };
-
+//TODO: unos listi
 Pozicija StvoriPoziciju();
+int Ispisi(Pozicija);
 int DodajClan(int, Pozicija);
 Pozicija Unija(Pozicija, Pozicija);
+Pozicija Presjek(Pozicija, Pozicija);
 
 Pozicija UnesiListuIzDatoteke(FILE *);
 
 int main()
 {
+	Pozicija L1, L2, unija, presjek;
+	L1 = StvoriPoziciju();
+	L1->next = NULL;
+	DodajClan(3, L1);
+	DodajClan(5, L1);
+	DodajClan(6, L1);
+	DodajClan(9, L1);
+
+	
+	L2 = StvoriPoziciju();
+	L2->next = NULL;
+	DodajClan(2, L2);
+	DodajClan(3, L2);
+	DodajClan(5, L2);
+	DodajClan(8, L2);
+	DodajClan(10, L2);
+
+	printf("Unija: ");
+	unija = Unija(L1->next, L2->next);
+	Ispisi(unija);
+	printf("\n ");
+
+	printf("Presjek: ");
+	presjek = Presjek(L1->next, L2->next);
+	Ispisi(presjek);
 }
 
 Pozicija Unija(Pozicija p, Pozicija q)
 {
-    Pozicija unija = StvoriPoziciju();
-    if (unija == NULL)
+    //u_poc pokazuje na pocetak od u
+    Pozicija u = StvoriPoziciju(), u_poc = NULL;
+    if (u == NULL)
         return NULL;
+    u->next = NULL;
+    u_poc = u;
     while (p != NULL && q != NULL)
-    {
-
+    {	
         if (p->el > q->el)
         {
             DodajClan(q->el, u);
@@ -69,9 +98,42 @@ Pozicija Unija(Pozicija p, Pozicija q)
             u = u->next;
         }
     }
-    return unija;
+    
+    return u_poc->next;
 }
+
+Pozicija Presjek(Pozicija p, Pozicija q)
+{
+ 
+    Pozicija pre = StvoriPoziciju(), pre_poc = NULL;
+    if (pre == NULL)
+        return NULL;
+    pre->next = NULL;
+    pre_poc = pre;
+    while (p != NULL && q != NULL)
+    {	
+        if (p->el > q->el)
+        {
+            q = q->next;
+        }
+        else if (p->el < q->el)
+        {
+            p = p->next;
+        }
+        else
+        {
+            DodajClan(p->el, pre);
+            p = p->next;
+            q = q->next;
+            pre = pre->next;
+        }
+    }
+    
+    return pre_poc->next;
+}
+
 /*	
+
 		else if(p->pot > q->pot){		
 			if (q->el != 0){
 				DodajClanNaKraj(q->el, q->pot, pol_zbr);		
@@ -105,8 +167,19 @@ int UcitajBrojeveIzLinijeUNiz(FILE *fp, int *p_niz, char *buff){
 
 */
 
+int Ispisi(Pozicija p){
+	while (p != NULL){
+		printf("%d ",p->el);
+		p = p->next;
+	}
+}
+
 int DodajClan(int el, Pozicija p)
 {
+	if (p == NULL) return -1;
+	while (p->next != NULL){
+		p = p->next;
+	}	
     Pozicija q = StvoriPoziciju();
     if (q == NULL)
         return -1;
@@ -125,9 +198,9 @@ Pozicija StvoriPoziciju()
     }
     return q;
 }
-
+/*
 Pozicija UnesiListuIzDatoteke(FILE *fp)
 {
     char *buff = NULL;
     fread(buff, );
-}
+}*/
