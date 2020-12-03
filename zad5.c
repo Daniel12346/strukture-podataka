@@ -12,8 +12,9 @@ struct _clan
     int el;
     Pozicija next;
 };
-//TODO: unos listi
+
 Pozicija StvoriPoziciju();
+Pozicija UnosListe();
 int Ispisi(Pozicija);
 int DodajClan(int, Pozicija);
 Pozicija Unija(Pozicija, Pozicija);
@@ -24,22 +25,11 @@ Pozicija UnesiListuIzDatoteke(FILE *);
 int main()
 {
 	Pozicija L1, L2, unija, presjek;
-	L1 = StvoriPoziciju();
-	L1->next = NULL;
-	DodajClan(3, L1);
-	DodajClan(5, L1);
-	DodajClan(6, L1);
-	DodajClan(9, L1);
-
-	
-	L2 = StvoriPoziciju();
-	L2->next = NULL;
-	DodajClan(2, L2);
-	DodajClan(3, L2);
-	DodajClan(5, L2);
-	DodajClan(8, L2);
-	DodajClan(10, L2);
-
+	printf("Unesite elemente 1.liste\n");
+	L1 = UnosListe();
+	getchar();
+	printf("\nUnesite elemente 2.liste\n");
+	L2 = UnosListe();
 	printf("Unija: ");
 	unija = Unija(L1->next, L2->next);
 	Ispisi(unija);
@@ -132,40 +122,6 @@ Pozicija Presjek(Pozicija p, Pozicija q)
     return pre_poc->next;
 }
 
-/*	
-
-		else if(p->pot > q->pot){		
-			if (q->el != 0){
-				DodajClanNaKraj(q->el, q->pot, pol_zbr);		
-			}
-			q = q->next;
-		}
-		else if(p->pot < q->pot){
-			if (p->el != 0){
-				DodajClanNaKraj(p->el, p->pot, pol_zbr);
-			}
-			p = p->next;
-		}
-	}
-	return pol_zbr;
-}
-*()
-
-/*
-int UcitajBrojeveIzLinijeUNiz(FILE *fp, int *p_niz, char *buff){	
-	int offset = 0, tmp = 0, i = 0;
-	fgets(buff, MAX, fp);
-	while(sscanf(buff, "%d%n", &tmp, &offset)==1){
-		//pomiče pointer za broj procitanih znakova
-		buff += offset;
-		p_niz[i] = tmp;
-		i++;
-	}	
-	return i;
-}
-
-
-*/
 
 int Ispisi(Pozicija p){
 	while (p != NULL){
@@ -198,9 +154,23 @@ Pozicija StvoriPoziciju()
     }
     return q;
 }
-/*
-Pozicija UnesiListuIzDatoteke(FILE *fp)
-{
-    char *buff = NULL;
-    fread(buff, );
-}*/
+
+Pozicija UnosListe(){
+	Pozicija p = StvoriPoziciju(), p_poc;
+	if (p == NULL) return NULL;
+	p_poc = p;
+	int el = 0; 
+	char tmp;
+	printf("Unesite prvi element liste (za prekid unesite bilo koji znak koji nije broj)\n");
+	while(scanf("%d%c", &el, &tmp)){
+		printf("Unesite sljedeći element liste\n");
+		if (!p->el || el >= p->el){
+			DodajClan(el, p);
+			p = p->next;
+		} 
+		else{
+			printf("Brojevi moraju biti uzlazno sortirani! Unesite novi element\n");
+		} 
+	}
+	return p_poc;
+}
