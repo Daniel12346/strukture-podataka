@@ -1,5 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #define ERR -1
+
+//TODO: greske u datoteci, floatovi?
 
 typedef struct _clan Clan;
 typedef Clan *Pozicija;
@@ -9,18 +14,24 @@ struct _clan
     int el;
     Pozicija next;
 };
+
 Pozicija StvoriPoziciju();
 int Push(Pozicija, int el);
 int Pop(Pozicija);
 int UcitajIzDatoteke(FILE *, char **);
-int RacunajPrefiks(char *);
+int RacunajPrefiks(char *, int);
 
 int main()
 {
     char *buff = NULL;
-    FILE *fp = fopen("postfix.txt");
-    UcitajIzDatoteke(fp, &buff);
+    int n = 0, rez = 0;
+    buff = malloc(sizeof(char));
+    FILE *fp = fopen("postfix.txt", "r");
+    n = UcitajIzDatoteke(fp, &buff);
     fclose(fp);
+  //  printf("%s", buff);
+    rez = RacunajPrefiks(buff, n);
+    printf("Rez: %d", rez);
 }
 
 Pozicija StvoriPoziciju()
@@ -38,7 +49,7 @@ int Push(Pozicija p, int el)
 {
     Pozicija q = StvoriPoziciju();
     if (q == NULL)
-        return -1;
+        return ERR;
     q->el = el;
     q->next = p->next;
     p->next = q;
@@ -47,6 +58,7 @@ int Push(Pozicija p, int el)
 int Pop(Pozicija p)
 {
     Pozicija tmp = p->next;
+    if (tmp == NULL) return ERR;
     int el = tmp->el;
     p->next = tmp->next;
     free(tmp);
@@ -58,37 +70,32 @@ int UcitajIzDatoteke(FILE *fp, char **p_buff)
 
     char *tmp = NULL;
     int fsize;
+    if (fp == NULL){
+	printf("Datoteka se nije otvorila\n");
+	return -1;	
+    } 
     fseek(fp, 0, SEEK_END);
-    fsize = ftell(fp);
-    rewind(pFile);
-    tmp = realloc(p_buff, fsize * sizeof(char));
-    fread(*p_buff, 1, fsize, fp);
-    strcpy(tmp, p_buff);
-    printf("%s", p_buff);
+    fsize = ftell(fp) + 1;
+    rewind(fp);
+    *p_buff = realloc(*p_buff, fsize  * sizeof(char));
+    fread(*p_buff, fsize, 1, fp);
+   /* strcpy(tmp, *p_buff);
+    printf("%s ", *p_buff);*/
+    return fsize;
 }
 
-int RacunajPrefiks(char *tekst)
+int RacunajPrefiks(char *tekst, int n)
 {
-    /*Pozicija stog = StvoriPoziciju();
+    Pozicija stog = StvoriPoziciju();
+    int tmp1 = 0, tmp2 = 0;
     if (stog == NULL)
         return -1;
-    int rez = 0, n = 0, broj = 0;
-
-    while ((rez = sscanf(tekst, "%d%n", &broj, &n)) != EOF)
+    
+    for (int i = 0; i < n; i++)
     {
-        if (rez == 1)
-        {
-            Push(stog, broj);
-        }
-        else
-        {
-            //TODO:
-        }
-    }*/
-    for (int i = 0; tekst[i] != '\0'; i++)
-    {
-        switch (tekst[i])
-        {
+	 //printf("%d", tekst[i] == '+'); 
+         switch (tekst[i])
+        {	
         case ('0'):
         case ('1'):
         case ('2'):
@@ -99,12 +106,37 @@ int RacunajPrefiks(char *tekst)
         case ('7'):
         case ('8'):
         case ('9'):
-            Push(Stog(atoi(tekst[i])));
-
+	    tmp1 = tekst[i] - '0';
+            Push(stog, (int) tmp1);
+	    break;
         case ('+'):
+	    tmp1 = Pop(stog);
+	    tmp2 = Pop(stog);
+	    Push(stog, tmp2 + tmp1); 
+	    break;
+
         case ('-'):
+	    tmp1 = Pop(stog);
+	    tmp2 = Pop(stog);
+	    Push(stog, tmp2 - tmp1);
+	    break;
         case ('*'):
+	    tmp1 = Pop(stog);
+	    tmp2 = Pop(stog);
+	    Push(stog, tmp2 * tmp1);
+            break;
         case ('/'):
-        }
+	    tmp1 = Pop(stog);
+	    tmp2 = Pop(stog);
+	    Push(stog, tmp2 / tmp1);
+	    break;	
+
+	default:
+	   break;
+	}	
     }
+ /*   printf("POP: %d\n", Pop(stog));
+    printf("POP: %d", Pop(stog));*/
+   return Pop(stog);
 }
+
