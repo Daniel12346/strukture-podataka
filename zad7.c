@@ -4,8 +4,6 @@
 #include <ctype.h>
 #define ERR -1
 
-//TODO: greske u datoteci, floatovi?
-
 typedef struct _clan Clan;
 typedef Clan *Pozicija;
 
@@ -28,10 +26,14 @@ int main()
     buff = malloc(sizeof(char));
     FILE *fp = fopen("postfix.txt", "r");
     n = UcitajIzDatoteke(fp, &buff);
+    //zatvaramo datoteku čim tekst iz nje upišemo u buffer
     fclose(fp);
-  //  printf("%s", buff);
     rez = RacunajPrefiks(buff, n);
-    printf("Rez: %d", rez);
+    if (rez != ERR){
+	printf("Rez: %d", rez);
+    }else{ 
+        printf("Greska - neispravan postfiks izraz\n");
+    }
 }
 
 Pozicija StvoriPoziciju()
@@ -68,32 +70,31 @@ int Pop(Pozicija p)
 int UcitajIzDatoteke(FILE *fp, char **p_buff)
 {
 
-    char *tmp = NULL;
     int fsize;
     if (fp == NULL){
-	printf("Datoteka se nije otvorila\n");
-	return -1;	
+	printf("Greska - datoteka se ne moze otvoriti\n");
+	return ERR;	
     } 
     fseek(fp, 0, SEEK_END);
+    //duljina teksta u datoteci
     fsize = ftell(fp) + 1;
     rewind(fp);
     *p_buff = realloc(*p_buff, fsize  * sizeof(char));
+    //učitava cijeli tekst iz datoteke u buffer
     fread(*p_buff, fsize, 1, fp);
-   /* strcpy(tmp, *p_buff);
-    printf("%s ", *p_buff);*/
     return fsize;
 }
 
 int RacunajPrefiks(char *tekst, int n)
 {
     Pozicija stog = StvoriPoziciju();
-    int tmp1 = 0, tmp2 = 0;
+    stog->next = NULL;
+    int tmp1 = 0, tmp2 = 0, rez = 0;
     if (stog == NULL)
-        return -1;
+        return ERR;
     
     for (int i = 0; i < n; i++)
     {
-	 //printf("%d", tekst[i] == '+'); 
          switch (tekst[i])
         {	
         case ('0'):
@@ -110,8 +111,9 @@ int RacunajPrefiks(char *tekst, int n)
             Push(stog, (int) tmp1);
 	    break;
         case ('+'):
-	    tmp1 = Pop(stog);
+	    tmp1 = Pop(stog); 
 	    tmp2 = Pop(stog);
+            if (tmp1 == ERR || tmp2 == ERR) return ERR;
 	    Push(stog, tmp2 + tmp1); 
 	    break;
 
@@ -119,24 +121,38 @@ int RacunajPrefiks(char *tekst, int n)
 	    tmp1 = Pop(stog);
 	    tmp2 = Pop(stog);
 	    Push(stog, tmp2 - tmp1);
+            if (tmp1 == ERR || tmp2 == ERR) return ERR;
 	    break;
+	//prihvaća i '*' i 'x' kao oznaku za množenje
         case ('*'):
+	case ('x'):
 	    tmp1 = Pop(stog);
 	    tmp2 = Pop(stog);
+	    //ako je bar jedna od vrijednosti koje popamo sa stoga ERR, nema dovoljno operanada za operaciju koju treba obaviti
+            if (tmp1 == ERR || tmp2 == ERR) return ERR;
 	    Push(stog, tmp2 * tmp1);
             break;
         case ('/'):
 	    tmp1 = Pop(stog);
 	    tmp2 = Pop(stog);
+            if (tmp1 == ERR || tmp2 == ERR) return ERR;
+            /*da bi bilo moguće djeljenje čiji rezultat nije cijeli broj, trebalo bi koristiti float umjesto int u strukturi i svim funkcijama jer bi i konacni rezultat mogao biti decimalni broj, umjesto toga program tretira necjelobrojno djelenje kao grešku*/ 
+            if ((float) tmp2/tmp1 != tmp2/tmp1){
+            	printf("Greska u izrazu - dozvoljeno je jedino cjelobrojno djeljenje\n");
+            }; 
 	    Push(stog, tmp2 / tmp1);
 	    break;	
-
+        //preskače sve pročitane znakove koji nisu ni brojevi ni operatori
 	default:
 	   break;
 	}	
     }
- /*   printf("POP: %d\n", Pop(stog));
-    printf("POP: %d", Pop(stog));*/
-   return Pop(stog);
+    rez = Pop(stog); 
+    /*ako je rez == ERR na stogu se nije nalazila konačna vrijednost, a ako stog->next nije null iza tražene vrijednosti slijedi još elemenata što je greška jer stog na kraju mora biti prazan*/
+    if (rez == ERR || stog->next != NULL){		
+	return ERR;		
+    }else{
+        return rez;
+   }
 }
 
