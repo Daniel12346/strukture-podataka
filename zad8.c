@@ -28,11 +28,14 @@ P_dir Pop(Pozicija);
 int Push(Pozicija, P_dir);
 P_dir StvoriDirektorij(char*);
 int SortiraniUnos(P_dir, P_dir);
+int BrisiListu(Pozicija);
+int BrisiDirektorij(P_dir);
 
 P_dir md(Pozicija, P_dir, char*);
 int dir(P_dir);
 P_dir cd(Pozicija, P_dir, char*);
 P_dir cd_natrag(Pozicija, P_dir);
+int izlaz(Pozicija, P_dir);
 
 int main()
 {
@@ -176,6 +179,31 @@ int SortiraniUnos(P_dir p, P_dir q){
     p->child = head->sibling;
 }
 
+int BrisiListu(Pozicija lista){
+    Pozicija tmp = NULL;
+    P_dir tmp_dir = NULL;
+    while(lista->next != NULL){
+        tmp = lista;
+        lista = lista->next;
+        free(lista);
+    }
+}
+
+//TODO: provjerit
+int BrisiDirektorij(P_dir p){
+    P_dir tmp = NULL;
+    //tmp = StvoriDirektorij(" ");
+    if(p == NULL) return ERR;
+    if(p->child == NULL){
+        free(p);
+    }
+    while(p->sibling != NULL){
+        tmp = p;
+        BrisiDirektorij(p);
+        p = p->sibling;
+    } 
+}
+
 P_dir md(Pozicija stog, P_dir p, char *ime){
     if (p == NULL) return NULL;
     P_dir q = NULL, tmp = NULL;
@@ -203,8 +231,6 @@ int dir(P_dir p){
 }
 
 //jedino cd i cd_natrag (cd..) mijenjaju stog
-
-//TODO: popravit
 P_dir cd(Pozicija stog, P_dir p, char *ime){
     //q je direktorij koji trazimo
     P_dir q = NULL, tmp = NULL;
@@ -213,7 +239,7 @@ P_dir cd(Pozicija stog, P_dir p, char *ime){
     if (strcmp(ime, tmp->ime) == 0){
 	q = tmp;
     }else{
-        while (tmp->sibling != NULL){
+        while (tmp != NULL){
     	    if (strcmp(ime, tmp->ime) == 0){
                 q = tmp;
             } 
@@ -229,3 +255,8 @@ P_dir cd_natrag(Pozicija stog, P_dir p){
     return Pop(stog);
 }
 
+
+int izlaz(Pozicija stog, P_dir p){
+    P_dir tmp = NULL, poc = p, head = NULL;  
+    if (BrisiListu(stog) == ERR || BrisiDirektorij(p) == ERR) return ERR;
+}
