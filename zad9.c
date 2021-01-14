@@ -23,8 +23,15 @@ int main()
     Stablo root = NULL;
     root = Unos(root, 3);
     root = Unos(root, 1);
-    root = Unos(root, 2);
-    root = Unos(root, 56);
+    root = Unos(root, 46);
+    root = Unos(root, 7); 
+    root = Unos(root, 4);
+    root = Unos(root, 26); 
+    Ispis(root); 
+    printf("\n");
+    root = Brisi(root, 7);
+    root = Brisi(root, 1);
+    root = Brisi(root, 26);
     Ispis(root);
 }
 
@@ -82,36 +89,31 @@ Stablo Trazi(Stablo s, int el)
 Stablo Brisi(Stablo s, int el)
 {
     Stablo tmp;
-    if (s == NULL)
-        return NULL;
-    if (s->el == el)
-    {
-        if (s->L != NULL)
-
-        {
-            tmp = TraziMax(s->L);
-            s->el = tmp->el;
-            s->L = Brisi(s->L, tmp->el);
-        }
-        else if (s->D != NULL)
-        {
-            tmp = TraziMin(s->D);
-            s->el = tmp->el;
-            s->D = Brisi(s->D, tmp->el);
-        }
-        else
-        {
-            free(s);
-            return NULL;
-        }
+    if(s == NULL){
+	return NULL;
     }
-    else if (s->el < el)
-    {
-        s->L = Brisi(s->L, el);
-    }
-    else
-    {
-        s->D = Brisi(s->D, el);
+    if (el > s->el) s->D = Brisi(s->D, el);
+    else if (el < s->el) s->L = Brisi(s->L, el);
+    else{ 
+    	if (s->L == NULL && s->D == NULL){
+	   free(s);
+	   return NULL;
+    	}
+	else if (s->L != NULL && s->D != NULL){
+	   tmp = TraziMin(s->D);
+	   s->el = tmp->el;
+	   s->D = Brisi(s->D, s->el);
+	}
+	else if (s->L != NULL){
+	   tmp = s;
+           s = s->L;
+	   free(tmp);	   
+	}
+	else if (s->D != NULL){
+	   tmp = s;
+	   s = s->D;
+           free(tmp); 
+	}
     }
     return s;
 }
@@ -120,5 +122,18 @@ Stablo TraziMax(Stablo s)
 {
     if (s == NULL)
         return NULL;
-    //...
+    while(s->D != NULL){
+	s = s->D;
+    }
+    return s;
+}
+
+Stablo TraziMin(Stablo s)
+{
+    if (s == NULL)
+        return NULL;
+    while(s->L != NULL){
+	s = s->L;
+    }
+    return s;
 }
