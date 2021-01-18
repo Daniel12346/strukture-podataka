@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<string.h>
 #define ERR -1
-#define MAX 100
+#define MAX 200
 #define NOT_SET -2
 
 //brojevi mogu biti višeznamenkasti pa ih se u zapisu u datoteci treba odvajati razmakom
@@ -33,24 +33,24 @@ int NemaPodstabla(Stablo s){
     return s->L == NULL && s->D == NULL;
 }
 
-int IspisInorder(Stablo s){
+int IspisInorderUString(Stablo s, char* str){
     if (s == NULL) return 0;
     if (s->L == NULL || NemaPodstabla(s->L)){ 
-       IspisInorder(s->L);
+       IspisInorderUString(s->L, str);
     }else{
-    	printf("(");
-    	IspisInorder(s->L);
-    	printf(")");
+    	sprintf(str + strlen(str), "(");
+    	IspisInorderUString(s->L, str + strlen(str));
+    	sprintf(str + strlen(str), ")");
     }
 
-    printf("%s", s->el);
+    sprintf(str + strlen(str), "%s", s->el);
 
-    if (s->D == NULL || NemaPodstabla(s->D)){ 
-       IspisInorder(s->D);
+    if (s->D == NULL || NemaPodstabla(s->D)){  
+    	IspisInorderUString(s->D, str);
     }else{
-    	printf("(");
-    	IspisInorder(s->D);
-    	printf(")");
+    	sprintf(str + strlen(str), "(");
+    	IspisInorderUString(s->D, str + strlen(str));
+    	sprintf(str + strlen(str), ")");
     }
 }
 
@@ -103,15 +103,19 @@ Stablo StvoriStablo(char* el)
 int main()
 {
     FILE *fp = fopen("postfiks.txt", "r");
+    FILE *fp2 = fopen("infiks.txt", "w+");
     Stablo stablo = NULL, s1 = NULL, s2 = NULL, tmp_stablo = NULL;
     Pozicija stog = StvoriPoziciju(tmp_stablo);
-    char buff[MAX], str[MAX], tmp_str[2];
+    //u buff se upisuje tekst iz ulazne datoteke (sa prefiks izrazom)
+    //str je spremnik u koji se upisuje broj tj. služi za pretvorbu inta u string
+    //u str_dat funkcija IspisInorder ispisuje sadržaj stabla (infiks izraz), koji se pomoću str_dat zapisuje u izlaznu datoteku
+    char buff[MAX], str[MAX], str_dat[MAX], tmp_str[2];
     int count = 0, fsize = 0, tmp = NOT_SET;
     fseek(fp, 0, SEEK_END);
     fsize = ftell(fp);
     rewind(fp);
     fread(buff, 1, fsize, fp);
-    //TODO: ovo u novu funkciju
+    fclose(fp);
     for (int i = 0; i < fsize; i++){
         switch(buff[i]){
 		case '0':
@@ -124,7 +128,7 @@ int main()
 		case '7':
 		case '8':
 		case '9':
-		    //sastavljanje broja od vise znakova: sa svakim novim znakom koji predstavlja znamenku, broj koji se sastavlja se množi sa 10, a najnovija znamenka (novi znak) ide na zadnje mjesto
+		    /*sastavljanje broja od vise znakova: sa svakim novim znakom koji predstavlja znamenku, broj koji se sastavlja se množi sa 10, a najnovija znamenka (novi znak) ide na zadnje mjesto*/
 		    if (tmp == NOT_SET){
 		      tmp = buff[i] - '0';
 		    }else{
@@ -180,5 +184,8 @@ int main()
 	}	
     }
     stablo = Pop(stog);
-    IspisInorder(stablo);
+    /* str_dat - 1 jer printf u rekurzivnoj funkciji preskace određeni broj mjesta u stringu pri svakom pozivu. Bez tog preskakanja bi uvijek upisivao u str[0] (na početak stringa) i funkcija ne bi radila. -1 ovdje kompenzira preskok u prvom pozivu printf u toj funkciji*/
+    IspisInorderUString(stablo, str_dat - 1);
+    fputs(str_dat, fp2);
+    fclose(fp2);
 }
